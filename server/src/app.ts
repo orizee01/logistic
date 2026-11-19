@@ -39,3 +39,5 @@ app.use('/api/v1', apiRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+export default app;
