@@ -1,0 +1,14 @@
+{
+  "name": "logistic",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "db:setup": "npm --prefix server run db:migrate && npm --prefix server run db:seed",
+    "build": "npm --prefix server run build && npm --prefix client run build"
+  },
+  "devDependencies": {
+    "concurrently": "9.1.2"
+  }
+}
