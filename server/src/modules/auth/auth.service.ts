@@ -35,10 +35,10 @@ export const authService = {
 
     const role: Role = type === 'staff' ? account.role! : type;
 
-    // Security notice to the customer. Not awaited, so a slow or failing mail server never delays login.
-    // The catch matters: an unhandled rejection from a background promise would crash the process.
+    // Security notice to the customer. Awaited because serverless hosts (Vercel) can freeze the function as soon
+    // as the response is sent, which would silently drop a background send. The mailer never throws.
     if (type === 'customer') {
-      sendLoginNotificationEmail(account.email, account.name, context).catch((error) =>
+      await sendLoginNotificationEmail(account.email, account.name, context).catch((error) =>
         console.error('Mailer: could not prepare sign-in notification —', error),
       );
     }
@@ -84,8 +84,8 @@ export const authService = {
       return { accountType: record.account_type, account: updated };
     });
 
-    // Confirmation to the account owner. Not awaited, so a slow mail server never delays the response.
-    sendPasswordSetEmail(account.email, account.name).catch((error) =>
+    // Confirmation to the account owner. Awaited so a serverless host can't freeze the function before it sends.
+    await sendPasswordSetEmail(account.email, account.name).catch((error) =>
       console.error('Mailer: could not prepare password confirmation —', error),
     );
 
