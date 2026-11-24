@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, useCallback, useEffect, useState } from 'react';
+import { InputHTMLAttributes, ReactNode, useCallback, useEffect, useState } from 'react';
 import { DeliveryStatus, HistoryEntry } from '../api';
 
 export const STATUS_LABELS: Record<DeliveryStatus, string> = {
@@ -46,6 +46,28 @@ export function Timeline({ history }: { history: HistoryEntry[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// Centered pop-up with a dimmed backdrop. Closes on the button, Escape, or a click outside.
+export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal card" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-icon" aria-hidden="true">✓</div>
+        <h2>{title}</h2>
+        {children}
+        <button type="button" className="btn btn-primary" onClick={onClose} autoFocus>
+          Got it
+        </button>
+      </div>
+    </div>
   );
 }
 

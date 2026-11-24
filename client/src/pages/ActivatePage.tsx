@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { ErrorBanner, PasswordInput } from '../components/ui';
+import { ErrorBanner, Modal, PasswordInput } from '../components/ui';
 
 // Two steps on one page:
 //  1. no ?token → ask for email and send an activation link
@@ -45,9 +45,16 @@ function RequestLinkForm({ accountType }: { accountType: string }) {
         Enter the email your {accountType === 'rider' ? 'rider' : 'customer'} account was registered with. We'll send
         you a one-time link to choose a password.
       </p>
-      {message ? (
-        <>
-          <div className="alert alert-success">{message}</div>
+      {message && (
+        <Modal
+          title="Check your email"
+          onClose={() => {
+            setMessage(null);
+            setDevLink(undefined);
+            setEmail('');
+          }}
+        >
+          <p className="muted">{message}</p>
           {devLink && (
             <div className="alert dev-note">
               <strong>Development mode:</strong> no email is sent, so here is the link.
@@ -62,19 +69,18 @@ function RequestLinkForm({ accountType }: { accountType: string }) {
               created. Check the spelling, or that you picked the right sign-in page.
             </div>
           )}
-        </>
-      ) : (
-        <form onSubmit={handleSubmit} className="form">
-          <ErrorBanner message={error} />
-          <label>
-            Email
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </label>
-          <button className="btn btn-primary" disabled={submitting}>
-            {submitting ? 'Sending…' : 'Send activation link'}
-          </button>
-        </form>
+        </Modal>
       )}
+      <form onSubmit={handleSubmit} className="form">
+        <ErrorBanner message={error} />
+        <label>
+          Email
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </label>
+        <button className="btn btn-primary" disabled={submitting}>
+          {submitting ? 'Sending…' : 'Send activation link'}
+        </button>
+      </form>
       <p className="small">
         <Link to={accountType === 'rider' ? '/rider/login' : '/login'}>Back to sign in</Link>
       </p>
