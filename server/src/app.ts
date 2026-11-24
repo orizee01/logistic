@@ -1,3 +1,4 @@
+import path from 'path';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
@@ -26,7 +27,16 @@ app.use(
   }),
 );
 
-app.use(helmet());
+// When served over plain HTTP (a demo without a certificate), the default CSP's upgrade-insecure-requests
+// and HSTS would make browsers request every asset over HTTPS, which then fails.
+const httpOnly = process.env.ALLOW_INSECURE_HTTP === 'true';
+app.use(
+  helmet(
+    httpOnly
+      ? { hsts: false, contentSecurityPolicy: { directives: { 'upgrade-insecure-requests': null } } }
+      : undefined,
+  ),
+);
 app.use(cors({ origin: env.clientUrl }));
 app.use(express.json({ limit: '100kb' }));
 
@@ -36,6 +46,15 @@ app.get('/health', async (_req, res) => {
 });
 
 app.use('/api/v1', apiRoutes);
+
+// Serve the built React app when it is bundled alongside the API (the container image does this).
+const clientDir = process.env.CLIENT_DIST_DIR ? path.resolve(process.env.CLIENT_DIST_DIR) : null;
+if (clientDir) {
+  app.use(express.static(clientDir));
+  app.get(/^\/(?!api\/|health$).*/, (_req, res) => {
+    res.sendFile(path.join(clientDir, 'index.html'));
+  });
+}
 
 app.use(notFoundHandler);
 app.use(errorHandler);
