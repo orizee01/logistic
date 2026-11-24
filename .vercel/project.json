@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_FFyoxsEE9WZ6kdc31HOclJDGgEhG",
+  "orgId": "team_3QljxmQz11zt1crvm1sKzL4i",
+  "projectName": "logistic",
+  "settings": {
+    "createdAt": 1795098498743,
+    "framework": "services",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "26.x"
+  }
+}
