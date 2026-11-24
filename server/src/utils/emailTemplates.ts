@@ -280,3 +280,60 @@ export function activationEmail(data: ActivationEmailData): RenderedEmail {
     ].join('\n'),
   };
 }
+
+// ── Password set confirmation ────────────────────────────────────────────────
+
+export interface PasswordSetEmailData {
+  name: string;
+  email: string;
+  when: string;
+  resetUrl: string;
+}
+
+export function passwordSetEmail(data: PasswordSetEmailData): RenderedEmail {
+  const firstName = data.name.split(' ')[0] || data.name;
+
+  const content = `
+    ${icon('&#9989;', '#ecf9f1')}
+    <h1 style="margin:20px 0 8px;font-family:${FONT};font-size:24px;line-height:1.3;font-weight:700;color:${TEXT}">
+      Your password has been set
+    </h1>
+    <p style="margin:0 0 24px;color:${MUTED}">
+      Hi ${escapeHtml(firstName)}, the password for your SwiftDrop account was set on
+      <strong style="color:${TEXT}">${escapeHtml(data.when)}</strong>. You can now sign in.
+    </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td style="padding:16px 20px;background:${PANEL_BG};border:1px solid ${BORDER};border-radius:12px;
+                   font-family:${FONT};font-size:14px;color:${TEXT}">
+          <strong>Wasn't you?</strong> Reset your password straight away so no one else can get in.
+        </td>
+      </tr>
+    </table>
+
+    <div style="margin-top:24px">${button(data.resetUrl, 'Reset my password', 'danger')}</div>`;
+
+  const footer = `You're receiving this because the password for
+    <span style="color:${TEXT}">${escapeHtml(data.email)}</span> was set or changed.`;
+
+  return {
+    subject: 'Your SwiftDrop password has been set',
+    html: layout({
+      title: 'Your SwiftDrop password has been set',
+      preheader: `Your password was set on ${data.when}. Not you? Reset it now.`,
+      content,
+      footer,
+    }),
+    text: [
+      `Hi ${firstName},`,
+      '',
+      `The password for your SwiftDrop account was set on ${data.when}. You can now sign in.`,
+      '',
+      "Wasn't you? Reset your password straight away:",
+      data.resetUrl,
+      '',
+      '— SwiftDrop Logistics',
+    ].join('\n'),
+  };
+}

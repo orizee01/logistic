@@ -4,7 +4,7 @@ import { db } from '../../database/db';
 import { env } from '../../config/env';
 import { BadRequestError, UnauthorizedError } from '../../utils/errors';
 import { Role, signToken } from '../../utils/jwt';
-import { LoginContext, sendActivationEmail, sendLoginNotificationEmail } from '../../utils/mailer';
+import { LoginContext, sendActivationEmail, sendLoginNotificationEmail, sendPasswordSetEmail } from '../../utils/mailer';
 import { AccountType, ActivatableAccountType, authRepository } from './auth.repository';
 
 const BCRYPT_ROUNDS = 12;
@@ -70,7 +70,7 @@ export const authService = {
   async completeActivation(token: string, password: string): Promise<ActivatableAccountType> {
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-    return db.tx(async (t) => {
+    const { accountType, account } = await db.tx(async (t) => {
       const record = await authRepository.findActivationTokenForUpdate(hashToken(token), t);
       if (!record || record.used_at || record.expires_at.getTime() < Date.now()) {
         throw new BadRequestError('This activation link is invalid or has expired');
@@ -81,7 +81,14 @@ export const authService = {
         throw new BadRequestError('This activation link is invalid or has expired');
       }
       await authRepository.markActivationTokenUsed(record.id, t);
-      return record.account_type;
+      return { accountType: record.account_type, account: updated };
     });
+
+    // Confirmation to the account owner. Not awaited, so a slow mail server never delays the response.
+    sendPasswordSetEmail(account.email, account.name).catch((error) =>
+      console.error('Mailer: could not prepare password confirmation —', error),
+    );
+
+    return accountType;
   },
 };

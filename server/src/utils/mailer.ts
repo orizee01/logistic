@@ -1,6 +1,6 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { env } from '../config/env';
-import { activationEmail, signInNotificationEmail } from './emailTemplates';
+import { activationEmail, passwordSetEmail, signInNotificationEmail } from './emailTemplates';
 
 // Sends mail over SMTP when SMTP_HOST is configured (Gmail, Resend, Brevo, Mailgun, ...).
 // Without it — or when SMTP_USER is set but SMTP_PASS is missing, which every provider would
@@ -68,6 +68,21 @@ async function send(email: Email): Promise<void> {
 export async function sendActivationEmail(to: string, name: string, link: string): Promise<void> {
   const email = activationEmail({ name, email: to, link, expiresInMinutes: env.activationTokenTtlMinutes });
   await send({ to, kind: 'activation', consoleSummary: [`Link: ${link}`], ...email });
+}
+
+export async function sendPasswordSetEmail(to: string, name: string): Promise<void> {
+  const when = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: env.mailTimeZone,
+    timeZoneName: 'short',
+  }).format(new Date());
+  const email = passwordSetEmail({ name, email: to, when, resetUrl: `${env.clientUrl}/activate` });
+  await send({ to, kind: 'password set', consoleSummary: [`When: ${when}`], ...email });
 }
 
 export interface LoginContext {

@@ -4,7 +4,7 @@ import { execFile } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { activationEmail, signInNotificationEmail } from '../utils/emailTemplates';
+import { activationEmail, passwordSetEmail, signInNotificationEmail } from '../utils/emailTemplates';
 
 const outDir = path.join(os.tmpdir(), 'swiftdrop-email-previews');
 fs.mkdirSync(outDir, { recursive: true });
@@ -17,6 +17,12 @@ const previews = {
     device: 'Chrome on macOS',
     ip: '102.89.34.17',
     secureAccountUrl: 'http://localhost:5173/activate?type=customer',
+  }),
+  'password-set': passwordSetEmail({
+    name: 'Ada Okafor',
+    email: 'ada@example.com',
+    when: 'Thursday, 29 October 2026 at 09:41 GMT+1',
+    resetUrl: 'http://localhost:5173/activate',
   }),
   activation: activationEmail({
     name: 'Ada Okafor',

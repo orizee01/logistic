@@ -73,12 +73,18 @@ export const authRepository = {
     await q.none('UPDATE account_activation_tokens SET used_at = NOW() WHERE id = $<id>', { id });
   },
 
-  // Returns false if the account no longer exists or has been deactivated.
-  async setPassword(type: ActivatableAccountType, accountId: string, passwordHash: string, q: Queryable): Promise<boolean> {
-    const result = await q.result(
-      `UPDATE ${TABLES[type]} SET password_hash = $<passwordHash> WHERE id = $<accountId> AND is_active = TRUE`,
+  // Returns the account's name and email, or null if it no longer exists or has been deactivated.
+  setPassword(
+    type: ActivatableAccountType,
+    accountId: string,
+    passwordHash: string,
+    q: Queryable,
+  ): Promise<{ name: string; email: string } | null> {
+    return q.oneOrNone(
+      `UPDATE ${TABLES[type]} SET password_hash = $<passwordHash>
+       WHERE id = $<accountId> AND is_active = TRUE
+       RETURNING name, email`,
       { passwordHash, accountId },
     );
-    return result.rowCount > 0;
   },
 };
