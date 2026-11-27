@@ -62,7 +62,7 @@ export const openApiSpec = {
         tags: ['Auth'],
         summary: 'Request a set-password link',
         description:
-          'Sends a single-use link (valid 60 minutes) to set a password. Always returns 202, whether or not the email exists.',
+          'Sends a single-use link (valid 60 minutes) to set a password. An unknown customer email creates a customer account; riders must already exist. Always returns 202.',
         requestBody: { required: true, ...json(ref('ActivationRequest')) },
         responses: { 202: { description: 'Accepted', ...json(ref('Message')) }, ...errors(400, 429) },
       },

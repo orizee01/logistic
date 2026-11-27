@@ -1,6 +1,6 @@
 # SwiftDrop Logistics
 
-A delivery platform where pre-seeded customers activate their account, book deliveries, and track them; dispatchers assign riders; and riders update the delivery status.
+A delivery platform where customers (pre-seeded, or self-registered by email) set a password, book deliveries, and track them; dispatchers assign riders; and riders update the delivery status.
 
 ```
 server/   Node.js + TypeScript + Express 5 + PostgreSQL (pg-promise, raw SQL, Joi, JWT, bcrypt)
@@ -22,7 +22,7 @@ Every transition is written to `delivery_status_history`, which powers the custo
 Seeded customers have `password_hash = NULL`, so they **cannot** log in until they set a password themselves. There is no shared default password.
 
 1. The customer opens **Set up your password** (`/activate`) and enters their email.
-2. `POST /api/v1/auth/activation/request` creates a random, single-use token, stores only its SHA-256 hash, and expires it after 60 minutes. The response is the same whether or not the email exists, so it can't be used to discover which emails are registered.
+2. `POST /api/v1/auth/activation/request` creates a random, single-use token, stores only its SHA-256 hash, and expires it after 60 minutes. An unknown customer email creates a new customer account (self sign-up); rider accounts must already exist. The response never reveals whether an email was already registered.
 3. The link is "emailed". In development, `src/utils/mailer.ts` prints it to the server console. In production, replace that function with a real email provider.
 4. The customer opens the link, chooses a password, and `POST /api/v1/auth/activation/complete` stores the bcrypt hash and marks the token as used.
 5. `POST /api/v1/auth/login` now works and returns a JWT.

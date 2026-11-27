@@ -42,8 +42,9 @@ function RequestLinkForm({ accountType }: { accountType: string }) {
     <div className="auth-card card">
       <h1>Set up your password</h1>
       <p className="muted">
-        Enter the email your {accountType === 'rider' ? 'rider' : 'customer'} account was registered with. We'll send
-        you a one-time link to choose a password.
+        {accountType === 'rider'
+          ? "Enter the email your rider account was registered with. We'll send you a one-time link to choose a password."
+          : "Enter your email and we'll send you a one-time link to choose a password. New here? This creates your account."}
       </p>
       {message && (
         <Modal

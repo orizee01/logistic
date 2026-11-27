@@ -20,7 +20,10 @@ export const authController = {
   async requestActivation(req: Request, res: Response): Promise<void> {
     const link = await authService.requestActivation(req.body.accountType, req.body.email);
     res.status(202).json({
-      message: 'If an account exists for that email, an activation link has been sent.',
+      message:
+        req.body.accountType === 'rider'
+          ? 'If an account exists for that email, an activation link has been sent.'
+          : 'Check your inbox for a link to set your password.',
       // Only when emails are printed to the console instead of sent; once real email works,
       // the link goes only to the account's inbox.
       ...(env.showDevActivationLinks && !isEmailDeliveryEnabled() ? { devActivationLink: link } : {}),

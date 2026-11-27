@@ -38,6 +38,17 @@ export const authRepository = {
     );
   },
 
+  // Self-service sign-up: a customer with no password yet. Returns null if the email is already registered.
+  createCustomer(name: string, email: string, q: Queryable = db): Promise<AccountRow | null> {
+    return q.oneOrNone(
+      `INSERT INTO customers (name, email)
+       VALUES ($<name>, $<email>)
+       ON CONFLICT (email) DO NOTHING
+       RETURNING id, name, email, password_hash, is_active`,
+      { name, email },
+    );
+  },
+
   async replaceActivationToken(
     type: ActivatableAccountType,
     accountId: string,

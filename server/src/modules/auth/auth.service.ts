@@ -17,6 +17,13 @@ function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+// A readable starting name for a self-registered customer, e.g. "ada.okafor@x.com" -> "Ada Okafor".
+function nameFromEmail(email: string): string {
+  const words = email.split('@')[0].split(/[^\p{L}]+/u).filter(Boolean);
+  const name = words.map((word) => word[0].toUpperCase() + word.slice(1)).join(' ');
+  return name.slice(0, 150) || 'SwiftDrop Customer';
+}
+
 export interface LoginResult {
   token: string;
   user: { id: string; name: string; email: string; role: Role };
@@ -49,10 +56,16 @@ export const authService = {
     };
   },
 
-  // Resolves the same way whether or not the email exists. Returns the link so development
-  // builds can show it on screen; callers must not expose it in production.
+  // An unknown email creates a customer account; riders must already exist. Deactivated accounts get nothing.
+  // Returns the link so development builds can show it on screen; callers must not expose it in production.
   async requestActivation(type: ActivatableAccountType, email: string): Promise<string | null> {
-    const account = await authRepository.findAccountByEmail(type, email);
+    let account = await authRepository.findAccountByEmail(type, email);
+    if (!account && type === 'customer') {
+      // The lookup after a null insert covers two simultaneous requests for the same new email.
+      account =
+        (await authRepository.createCustomer(nameFromEmail(email), email)) ??
+        (await authRepository.findAccountByEmail(type, email));
+    }
     if (!account || !account.is_active) {
       return null;
     }
