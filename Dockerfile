@@ -1,11 +1,14 @@
 # Builds the API and the React client into one image. Build from the repository root:
 #   docker build -t swiftdrop .
+# BASE_PATH is the URL prefix the site is served under (no trailing slash; empty serves from the root).
+ARG BASE_PATH=/swiftdrop
 FROM node:22-slim AS client
+ARG BASE_PATH
 WORKDIR /client
 COPY client/package*.json ./
 RUN npm ci
 COPY client ./
-RUN npm run build
+RUN npm run build -- --base="${BASE_PATH}/"
 
 FROM node:22-slim AS server
 WORKDIR /app
@@ -17,7 +20,8 @@ RUN npx tsc -p tsconfig.json
 
 FROM node:22-slim
 WORKDIR /app
-ENV NODE_ENV=production CLIENT_DIST_DIR=/app/client-dist
+ARG BASE_PATH
+ENV NODE_ENV=production CLIENT_DIST_DIR=/app/client-dist BASE_PATH=$BASE_PATH
 COPY server/package*.json ./
 RUN npm ci --omit=dev
 COPY --from=server /app/dist ./dist

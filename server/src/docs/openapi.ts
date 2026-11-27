@@ -1,3 +1,4 @@
+import { env } from '../config/env';
 // OpenAPI 3 spec served by Swagger UI at /api/docs.
 // Keep request schemas in sync with the Joi schemas in each module's *.validation.ts.
 
@@ -40,7 +41,7 @@ export const openApiSpec = {
       'link (containing the token) is printed in the server console.',
     ].join('\n'),
   },
-  servers: [{ url: '/api/v1' }],
+  servers: [{ url: `${env.basePath}/api/v1` }],
   tags: [
     { name: 'Auth', description: 'Login and account activation' },
     { name: 'Customer', description: 'Customer profile and own deliveries' },

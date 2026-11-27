@@ -55,7 +55,9 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = `${import.meta.env.VITE_API_URL ?? ''}/api/v1`;
+// Without an explicit API origin, call the API under the same base path the app is served from.
+const API_ROOT = import.meta.env.VITE_API_URL || import.meta.env.BASE_URL.replace(/\/$/, '');
+const BASE_URL = `${API_ROOT}/api/v1`;
 
 let authToken: string | null = null;
 let onUnauthorized: (() => void) | null = null;

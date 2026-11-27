@@ -13,6 +13,24 @@ export const app = express();
 
 app.set('trust proxy', 1);
 
+// Serve everything under BASE_PATH: strip the prefix before routing, and send unprefixed visits (old links,
+// the domain root) to the prefixed address. /health stays reachable at the root for load balancer checks.
+const { basePath } = env;
+if (basePath) {
+  app.use((req, res, next) => {
+    if (req.url === basePath || req.url.startsWith(`${basePath}/`) || req.url.startsWith(`${basePath}?`)) {
+      const rest = req.url.slice(basePath.length);
+      req.url = rest.startsWith('/') ? rest : `/${rest}`;
+      next();
+    } else if (req.path === '/health') {
+      next();
+    } else {
+      // 308 keeps the method and body for non-GET requests.
+      res.redirect(req.method === 'GET' || req.method === 'HEAD' ? 302 : 308, `${basePath}${req.url}`);
+    }
+  });
+}
+
 // API docs. Registered before the global helmet() so Swagger UI isn't blocked by the strict CSP.
 app.get('/api/docs.json', (_req, res) => {
   res.json(openApiSpec);
@@ -37,7 +55,8 @@ app.use(
       : undefined,
   ),
 );
-app.use(cors({ origin: env.clientUrl }));
+// CORS compares origins, so drop any path from the client URL.
+app.use(cors({ origin: new URL(env.clientUrl).origin }));
 app.use(express.json({ limit: '100kb' }));
 
 app.get('/health', async (_req, res) => {

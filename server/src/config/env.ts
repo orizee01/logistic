@@ -22,6 +22,8 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1h',
   clientUrl: process.env.CLIENT_URL ?? 'http://localhost:5173',
   activationTokenTtlMinutes: 60,
+  // URL prefix the whole site is served under, e.g. "/swiftdrop". Empty means the domain root.
+  basePath: (process.env.BASE_PATH ?? '').replace(/\/+$/, ''),
   authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX ?? 20),
   // Development convenience only: return activation links in the API response. Never enabled in production.
   showDevActivationLinks: process.env.DEV_SHOW_ACTIVATION_LINKS === 'true' && process.env.NODE_ENV !== 'production',
